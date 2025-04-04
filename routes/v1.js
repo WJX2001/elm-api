@@ -1,11 +1,9 @@
-'use strict';
-
-
+'use strict'
 import express from 'express'
-const router = express.Router();
+import CityHandle from '../controller/v1/cities'
+const router = express.Router()
 
-router.get('/', function (req, res, next) {
-  res.json({ message: 'Hello Node.js' });
-});
+
+router.get('/cities', CityHandle.getCity)
 
 export default router
