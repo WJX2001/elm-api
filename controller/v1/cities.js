@@ -1,15 +1,58 @@
+import AddressComponent from '../../prototype/addressComponent'
+import pinyin from "pinyin"
 
 
-class CityHandle {
+class CityHandle extends AddressComponent {
 
   constructor() {
+    super()
     this.getCity = this.getCity.bind(this)
   }
 
-  async getCity(req, res) {
-    res.send('123');
+  async getCity (req, res) {
+    const type = req.query.type
+    let cityInfo
+    try {
+      switch (type) {
+        case 'guess':
+          // 获取到了城市名字 例如： shanghai
+          const city = await this.getCityName(req)
+          res.send(city)
+      }
+    } catch (error) {
+      res.send({
+        name: 'ERROR_DATA',
+        message: '获取数据失败',
+      })
+    }
+
+    // res.send('123')
+  }
+
+
+  // 获取城市名称
+  async getCityName (req) {
+    try {
+      const cityInfo = await this.guessPosition(req)
+      /**
+       * 汉字转换为拼音
+       */
+      const pinyinArr = pinyin(cityInfo.city, {
+        style: pinyin.STYLE_NORMAL
+      })
+      let cityName = '';
+      console.log(pinyinArr,'这是pinyinArr')
+      pinyinArr.forEach(item => {
+				cityName += item[0];
+			})
+      return cityName;
+    } catch (error) {
+      return '北京'
+    }
   }
 }
 
 
 export default new CityHandle()
+
+

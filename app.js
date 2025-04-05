@@ -3,6 +3,7 @@ import cookieParser from 'cookie-parser'
 import express from 'express'
 import router from './routes/index.js'
 import chalk from 'chalk';
+import logger from 'morgan'
 const app = express()
 
 app.all('*', (req, res, next) => {
@@ -23,6 +24,7 @@ app.all('*', (req, res, next) => {
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
+app.use(logger('dev'))
 
 app.listen(3000, () => {
   console.log(
