@@ -88,6 +88,39 @@ class AddressComponent extends BaseComponent {
 			throw new Error(err)
 		}
 	}
+
+
+	// 通过geohash 获取精确位置
+	async getpois (lat, lng) {
+		try {
+			const params = {
+				key: this.tencentkey,
+				location: lat + ',' + lng,
+			}
+
+			let res = await this.fetch('http://apis.map.qq.com/ws/geocoder/v1/', params)
+			if (res.status != 0) {
+				params.key = this.tencentkey2
+				res = await this.fetch('http://apis.map.qq.com/ws/geocoder/v1/', params)
+			}
+			if (res.status != 0) {
+				params.key = this.tencentkey3
+				res = await this.fetch('http://apis.map.qq.com/ws/geocoder/v1/', params)
+			}
+			if (res.status != 0) {
+				params.key = this.tencentkey4
+				res = await this.fetch('http://apis.map.qq.com/ws/geocoder/v1/', params)
+			}
+			if (res.status == 0) {
+				return res
+			} else {
+				throw new Error('通过获geohash取具体位置失败')
+			}
+		} catch (error) {
+			console.log('getpois获取定位失败', err)
+			throw new Error(err)
+		}
+	}
 }
 
 
