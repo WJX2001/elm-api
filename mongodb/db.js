@@ -1,8 +1,8 @@
 
 import chalk from "chalk"
 import mongoose from "mongoose"
-
-mongoose.connect("mongodb://localhost:27018/elm", { useMongoClient: true })
+import config from 'config-lite';
+mongoose.connect(config.url, { useMongoClient: true })
 mongoose.Promise = global.Promise
 
 const db = mongoose.connection

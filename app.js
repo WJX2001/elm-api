@@ -4,6 +4,7 @@ import express from 'express'
 import router from './routes/index.js'
 import chalk from 'chalk';
 import logger from 'morgan'
+import config from 'config-lite';
 import db from './mongodb/db.js';
 const app = express()
 
@@ -27,9 +28,9 @@ app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
 app.use(logger('dev'))
 
-app.listen(3000, () => {
+app.listen(config.port, () => {
   console.log(
-    chalk.green(`成功监听端口：3000`)
+    chalk.green(`成功监听端口：${config.port}`)
   )
 })
 
