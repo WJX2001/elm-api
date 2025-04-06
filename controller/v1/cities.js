@@ -1,3 +1,4 @@
+import Cities from '../../models/v1/cities'
 import AddressComponent from '../../prototype/addressComponent'
 import pinyin from "pinyin"
 
@@ -17,8 +18,10 @@ class CityHandle extends AddressComponent {
         case 'guess':
           // 获取到了城市名字 例如： shanghai
           const city = await this.getCityName(req)
-          res.send(city)
+          cityInfo = await Cities.cityGuess(city);
+          break;
       }
+      res.send(cityInfo);
     } catch (error) {
       res.send({
         name: 'ERROR_DATA',

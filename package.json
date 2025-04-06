@@ -17,6 +17,7 @@
     "cross-env": "^5.0.0",
     "debug": "~2.6.9",
     "express": "~4.16.1",
+    "mongoose": "^4.9.3",
     "morgan": "~1.9.1",
     "node-fetch": "^1.6.3",
     "nodemon": "^3.1.9",

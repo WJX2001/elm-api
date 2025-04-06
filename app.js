@@ -4,6 +4,7 @@ import express from 'express'
 import router from './routes/index.js'
 import chalk from 'chalk';
 import logger from 'morgan'
+import db from './mongodb/db.js';
 const app = express()
 
 app.all('*', (req, res, next) => {
