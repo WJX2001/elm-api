@@ -8,6 +8,7 @@ class AddressComponent extends BaseComponent {
 		this.tencentkey2 = 'RRXBZ-WC6KF-ZQSJT-N2QU7-T5QIT-6KF5X'
 		this.tencentkey3 = 'OHTBZ-7IFRG-JG2QF-IHFUK-XTTK6-VXFBN'
 		this.tencentkey4 = 'Z2BBZ-QBSKJ-DFUFG-FDGT3-4JRYV-JKF5O'
+		this.baidukey = 'fjke3YUipM9N64GdOIh1DNeK2APO2WcT'
 	}
 
 	async guessPosition (req) {
@@ -118,6 +119,49 @@ class AddressComponent extends BaseComponent {
 			}
 		} catch (error) {
 			console.log('getpois获取定位失败', err)
+			throw new Error(err)
+		}
+	}
+
+	//测量距离
+	async getDistance (from, to, type) {
+		try {
+			let res
+			res = await this.fetch('http://api.map.baidu.com/routematrix/v2/driving', {
+				ak: this.baidukey,
+				output: 'json',
+				origins: from,
+				destinations: to,
+			})
+
+			if (res.status == 0) {
+				const positionArr = []
+				let timevalue
+				res.result.forEach(item => {
+					timevalue = parseInt(item.duration.value) + 1200
+					let durationtime = Math.ceil(timevalue % 3600 / 60) + '分钟'
+					if (Math.floor(timevalue / 3600)) {
+						durationtime = Math.floor(timevalue / 3600) + '小时' + durationtime
+					}
+					positionArr.push({
+						distance: item.distance.text,
+						order_lead_time: durationtime,
+					})
+				})
+				if (type == 'tiemvalue') {
+					return timevalue
+				} else {
+					return positionArr
+				}
+			} else {
+				if (type == 'tiemvalue') {
+					return 2000
+				} else {
+					throw new Error('调用百度地图测距失败')
+				}
+			}
+		} catch (err) {
+			console.log('获取位置距离失败')
 			throw new Error(err)
 		}
 	}
