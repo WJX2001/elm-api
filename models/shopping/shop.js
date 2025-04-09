@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 import mongoose from 'mongoose'
 
@@ -20,7 +20,7 @@ const shopSchema = new mongoose.Schema({
 	description: { type: String, default: "" },
 	order_lead_time: { type: String, default: "" },
 	distance: { type: String, default: "" },
-	location:{type:[Number],index: '2d'},
+	location: { type: [Number], index: '2d' },
 	float_delivery_fee: { type: Number, default: 0 },
 	float_minimum_order_amount: { type: Number, default: 0 },
 	id: Number,
@@ -47,14 +47,14 @@ const shopSchema = new mongoose.Schema({
 		catering_service_license_image: { type: String, default: "" },
 	},
 	name: {
-        type: String,
-        required: true 
-    },
+		type: String,
+		required: true
+	},
 	opening_hours: { type: Array, default: ["08:30/20:30"] },
 	phone: {
-        type: String,
-        required: true 
-    },
+		type: String,
+		required: true
+	},
 	piecewise_agent_fee: {
 		tips: String
 	},
@@ -70,10 +70,10 @@ const shopSchema = new mongoose.Schema({
 		id: Number,
 		name: String
 	}],
-});
+})
 
-shopSchema.index({ id: 1 }); //primary_key 主键
+shopSchema.index({ id: 1 }) //primary_key 主键
 
-const Shop = mongoose.model('Shop', shopSchema);
+const Shop = mongoose.model('Shop', shopSchema)
 
 export default Shop

@@ -7,16 +7,6 @@ class Shop extends AddressComponent {
 		this.getRestaurants = this.getRestaurants.bind(this)
 	}
 
-	// 添加商铺
-	// async addShop (req, res, next) {
-	// 	let restaurant_id
-	// 	try {
-	// 		restaurant_id = await 
-	// 	} catch (err) {
-
-	// 	}
-	// }
-
 	// 搜索餐馆
 	async searchResaturant (req, res, next) {
 		const { geohash, keyword } = req.query
@@ -45,8 +35,8 @@ class Shop extends AddressComponent {
 				let to = ''
 				//获取百度地图测局所需经度纬度
 				restaurants.forEach((item, index) => {
-					const slpitStr = (index == restaurants.length -1) ? '' : '|';
-					to += item.latitude + ',' + item.longitude + slpitStr;
+					const slpitStr = (index == restaurants.length - 1) ? '' : '|'
+					to += item.latitude + ',' + item.longitude + slpitStr
 				})
 				//获取距离信息，并合并到数据中
 				const distance_duration = await this.getDistance(from, to)
@@ -54,9 +44,9 @@ class Shop extends AddressComponent {
 					return Object.assign(item, distance_duration[index])
 				})
 			}
-			res.send(restaurants);
+			res.send(restaurants)
 		} catch (err) {
-			console.log('搜索餐馆数据失败',err);
+			console.log('搜索餐馆数据失败', err)
 			res.send({
 				status: 0,
 				type: 'ERROR_DATA',
@@ -186,6 +176,36 @@ class Shop extends AddressComponent {
 				status: 0,
 				type: 'ERROR_GET_SHOP_LIST',
 				message: '获取店铺列表数据失败'
+			})
+		}
+	}
+
+	/** 
+	 * 获取餐馆详情
+	 * GET /shopping/restaurant/:shopid
+	 */
+
+	async getRestaurantDetail (req, res, next) {
+		const restaurant_id = req.params.restaurant_id
+		if (!restaurant_id || !Number(restaurant_id)) {
+			console.log('获取餐馆详情参数ID错误')
+			res.send({
+				status: 0,
+				type: 'ERROR_PARAMS',
+				message: '餐馆ID参数错误',
+			})
+			return
+		}
+
+		try {
+			const restaurant = await ShopModel.findOne({ id: restaurant_id }, '-_id')
+			res.send(restaurant)
+		} catch (err) {
+			console.log('获取餐馆详情失败', err)
+			res.send({
+				status: 0,
+				type: 'GET_DATA_ERROR',
+				message: '获取餐馆详情失败'
 			})
 		}
 	}
