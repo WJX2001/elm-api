@@ -2,9 +2,14 @@
 
 import fetch from 'node-fetch'
 import Ids from '../models/ids'
+import formidable from 'formidable'
+import fs from 'fs'
+import path from 'path'
+import gm from 'gm'
 export default class BaseComponent {
   constructor() {
     this.idList = ['restaurant_id', 'food_id', 'order_id', 'user_id', 'address_id', 'cart_id', 'img_id', 'category_id', 'item_id', 'sku_id', 'admin_id', 'statis_id']
+    this.uploadImg = this.uploadImg.bind(this)
   }
 
   // 获取id列表
@@ -19,10 +24,83 @@ export default class BaseComponent {
       idData[type]++
       await idData.save()
       return idData[type]
-    }catch(err) {
-      console.log('获取ID数据失败');
-			throw new Error(err)
+    } catch (err) {
+      console.log('获取ID数据失败')
+      throw new Error(err)
     }
+  }
+
+  /**
+   * 上传图片
+   * POST /v1/addimg/:type
+   */
+  async uploadImg (req, res, next) {
+    try {
+      const image_path = await this.getPath(req, res)
+      res.send({
+        status: 1,
+        image_path
+      })
+    } catch (err) {
+      console.log('上传图片失败', err)
+      res.send({
+        status: 0,
+        type: 'ERROR_UPLOAD_IMG',
+        message: '上传图片失败'
+      })
+    }
+  }
+
+  async getPath (req, res) {
+    return new Promise((resolve, reject) => {
+      const form = formidable.IncomingForm()
+      form.uploadDir = './public/img'
+      form.parse(req, async (err, fields, files) => {
+        let img_id
+        try {
+          img_id = await this.getId('img_id')
+        } catch (err) {
+          console.log("获取图片ID失败")
+          fs.unlinkSync(files.file.path)
+          reject('获取图片id失败')
+        }
+
+        const hashName = (new Date().getTime() + Math.ceil(Math.random() * 10000)).toString(16) + img_id
+        console.dir(files,'files')
+        const extname = path.extname(files.file.name)
+        if (!['.jpg', '.jpeg', '.png'].includes(extname)) {
+          // 删除文件
+          fs.unlinkSync(files.file.path)
+          res.send({
+            status: 0,
+            type: 'ERROR_EXTNAME',
+            message: '文件格式错误'
+          })
+          reject('上传失败')
+          return
+        }
+
+        const fullName = hashName + extname
+        const repath = './public/img/' + fullName
+
+        try {
+          fs.renameSync(files.file.path, repath)
+          gm(repath)
+            .resize(200, 200, "!")
+            .write(repath, async (err) => {
+              resolve(fullName)
+            })
+        } catch (err) {
+          console.log('保存图片失败', err)
+          if (fs.existsSync(repath)) {
+            fs.unlinkSync(repath)
+          } else {
+            fs.unlinkSync(files.file.path)
+          }
+          reject('保存图片失败')
+        }
+      })
+    })
   }
 
   // fetch方法 
