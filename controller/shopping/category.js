@@ -25,6 +25,18 @@ class Category extends BaseComponent {
 		}
 	}
 
+	/** 
+	 * 添加分类
+	 */
+
+	async addCategory (type) {
+		try {
+			await CategoryModel.addCategory(type)
+		} catch (err) {
+			console.log('增加category数量失败')
+		}
+	}
+
 
 	/**
 	 * 获取配送方式
@@ -48,7 +60,6 @@ class Category extends BaseComponent {
 	 * 商家属性活动列表
 	 * GET /shopping/v1/restaurants/activity_attributes
 	 */
-
 	async getActivity (req, res, next) {
 		try {
 			const activities = await ActivityModel.find({}, '-_id')
@@ -62,8 +73,6 @@ class Category extends BaseComponent {
 			})
 		}
 	}
-
-
 
 	async findById (id) {
 		try {
