@@ -11,5 +11,5 @@ router.get('/v1/restaurants/activity_attributes', Category.getActivity);
 router.get('/restaurants', Shop.getRestaurants)
 router.get('/restaurant/:restaurant_id', Shop.getRestaurantDetail);
 router.post('/addcategory', Food.addCategory)
-
+router.post('/addfood', Food.addFood)
 export default router

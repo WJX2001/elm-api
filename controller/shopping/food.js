@@ -20,7 +20,8 @@ class Food extends BaseComponent {
     }]
 
     this.initData = this.initData.bind(this)
-    this.addCategory = this.addCategory.bind(this);
+    this.addFood = this.addFood.bind(this);
+    this.addCategory = this.addCategory.bind(this)
   }
 
   async initData (restaurant_id) {
@@ -48,16 +49,18 @@ class Food extends BaseComponent {
   }
 
   async addFood (req, res, next) {
-    const form = new formidable.IncomingForm()
+    const form = formidable({})
     form.parse(req, async (err, fields, files) => {
       try {
-        if (!fields.name) {
+        if (!fields.name[0]) {
           throw new Error('必须填写食品名称')
-        } else if (!fields.image_path) {
+        } else if (!fields.image_path[0]) {
           throw new Error('必须上传食品图片')
-        } else if (!fields.category_id) {
+        } else if (!fields.specs.length) {
+          throw new Error('照烧填写一种规格')
+        } else if (!fields.category_id[0]) {
           throw new Error('食品类型ID错误')
-        } else if (!fields.restaurant_id) {
+        } else if (!fields.restaurant_id[0]) {
           throw new Error('餐馆ID错误')
         }
       } catch (err) {
@@ -69,16 +72,116 @@ class Food extends BaseComponent {
         })
         return
       }
-
       let category
       let restaurant
-
       try {
         category = await MenuModel.findOne({ id: fields.category_id })
         restaurant = await ShopModel.findOne({ id: fields.restaurant_id })
       } catch (err) {
-
+        console.log('获取食品类型和餐馆信息失败')
+        res.send({
+          status: 0,
+          type: 'ERROR_DATA',
+          message: '添加食品失败'
+        })
+        return
       }
+
+      let item_id
+      try {
+        item_id = await this.getId('item_id')
+      } catch (err) {
+        console.log('获取item_id失败')
+        res.send({
+          status: 0,
+          type: 'ERROR_DATA',
+          message: '添加食品失败'
+        })
+        return
+      }
+
+      const rating_count = Math.ceil(Math.random() * 1000)
+      const month_sales = Math.ceil(Math.random() * 1000)
+      const tips = rating_count + '评价 月售' + month_sales + '份'
+      const newFood = {
+        name: fields.name[0],
+        description: fields.description[0],
+        image_path: fields.image_path[0],
+        activity: null,
+        attributes: [],
+        restaurant_id: fields.restaurant_id[0],
+        category_id: fields.category_id[0],
+        satisfy_rate: Math.ceil(Math.random() * 100),
+        satisfy_count: Math.ceil(Math.random() * 1000),
+        item_id,
+        rating: (4 + Math.random()).toFixed(1),
+        rating_count,
+        month_sales,
+        tips,
+        specfoods: [],
+        specifications: [],
+      }
+
+      if (fields.activity && fields.activity.length) {
+        newFood.activity = {
+          image_text_color: 'f1884f',
+          icon_color: 'f07373',
+          image_text: fields.activity,
+        }
+      }
+
+      if (fields.attributes && fields.attributes.length) {
+        fields.attributes.forEach(item => {
+          let attr
+          switch (item) {
+            case '新':
+              attr = {
+                icon_color: '5ec452',
+                icon_name: '新'
+              }
+              break
+            case '招牌':
+              attr = {
+                icon_color: 'f07373',
+                icon_name: '招牌'
+              }
+              break
+          }
+          newFood.attributes.push(attr)
+        })
+      }
+
+      try {
+        const [specfoods, specifications] = await this.getSpecfoods(fields, item_id)
+        newFood.specfoods = specfoods
+        newFood.specifications = specifications
+      } catch (err) {
+        console.log('添加specs失败', err)
+        res.send({
+          status: 0,
+          type: 'ERROR_DATA',
+          message: '添加食品失败'
+        })
+        return
+      }
+
+      try{
+				const foodEntity = await FoodModel.create(newFood);
+				category.foods.push(foodEntity);
+				category.markModified('foods');
+				await category.save();
+				res.send({
+					status: 1,
+					success: '添加食品成功',
+				});
+			}catch(err){
+				console.log('保存食品到数据库失败', err);
+				res.send({
+					status: 0,
+					type: 'ERROR_DATA',
+					message: '添加食品失败'
+				})
+			}
     })
   }
 
@@ -185,6 +288,68 @@ class Food extends BaseComponent {
   //     })
   //   }
   // }
+
+
+  async getSpecfoods (fields, item_id) {
+    let specfoods = [], specifications = []
+    if (fields.specs.length < 2) {
+      let food_id, sku_id
+      try {
+        sku_id = await this.getId('sku_id')
+        food_id = await this.getId('food_id')
+      } catch (err) {
+        throw new Error('获取sku_id、food_id 失败')
+      }
+
+      specfoods.push({
+        packing_fee: fields.specs[0].packing_fee,
+        price: fields.specs[0].price,
+        specs: [],
+        specs_name: fields.specs[0].specs,
+        name: fields.name[0],
+        item_id,
+        sku_id,
+        food_id,
+        restaurant_id: fields.restaurant_id[0],
+        recent_rating: (Math.random() * 5).toFixed(1),
+        recent_popularity: Math.ceil(Math.random() * 1000),
+      })
+    } else {
+      specifications.push({
+        values: [],
+        name: "规格"
+      })
+
+      for (let i = 0; i < fields.specs.length; i++) {
+        let food_id, sku_id
+        try {
+          sku_id = await this.getId('sku_id')
+          food_id = await this.getId('food_id')
+        } catch (err) {
+          throw new Error('获取sku_id、food_id失败')
+        }
+        specfoods.push({
+          packing_fee: fields.specs[i].packing_fee,
+          price: fields.specs[i].price,
+          specs: [{
+            name: "规格",
+            value: fields.specs[i].specs
+          }],
+          specs_name: fields.specs[i].specs,
+          name: fields.name[0],
+          item_id,
+          sku_id,
+          food_id,
+          restaurant_id: fields.restaurant_id[0],
+          recent_rating: (Math.random() * 5).toFixed(1),
+          recent_popularity: Math.ceil(Math.random() * 1000),
+        })
+        specifications[0].values.push(fields.specs[i].specs)
+      }
+    }
+    return [specfoods, specifications]
+  }
+
 
 }
 
