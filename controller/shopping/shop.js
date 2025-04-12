@@ -30,10 +30,17 @@ class Shop extends AddressComponent {
 			return
 		}
 
-		const form = new formidable.IncomingForm()
+		const form = formidable({multiples: true})
+		// await new Promise((resolve, reject) => {
+		// 	form.parse(req, (err, fields,files) => {
+		// 		console.log('11111')
+		// 	})
+		// })
 		form.parse(req, async (err, fields, files) => {
+			// const a = { fields }
+			console.log(fields, '111')
 			try {
-				if (!fields.name) {
+				if (!fields.name[0]) {
 					throw new Error('必须填写商店名称')
 				} else if (!fields.address) {
 					throw new Error('必须填写商店地址')
@@ -124,8 +131,12 @@ class Shop extends AddressComponent {
 
 			// TODO: 临时处理
 			if (fields.activities) {
+				// console.log(fields.activities.name,'123')
+				const tmp = JSON.parse(fields.activities)
+
+				console.log(tmp[0], '456')
 				// 商店支持的活动
-				fields.activities.forEach((item, index) => {
+				tmp.forEach((item, index) => {
 					switch (item.icon_name) {
 						case '减':
 							item.icon_color = 'f07373'
@@ -147,6 +158,27 @@ class Shop extends AddressComponent {
 					newShop.activities.push(item)
 				})
 			}
+			// fields.activities.forEach((item, index) => {
+			// 	switch (item.icon_name) {
+			// 		case '减':
+			// 			item.icon_color = 'f07373'
+			// 			item.id = index + 1
+			// 			break
+			// 		case '特':
+			// 			item.icon_color = 'EDC123'
+			// 			item.id = index + 1
+			// 			break
+			// 		case '新':
+			// 			item.icon_color = '70bc46'
+			// 			item.id = index + 1
+			// 			break
+			// 		case '领':
+			// 			item.icon_color = 'E3EE0D'
+			// 			item.id = index + 1
+			// 			break
+			// 	}
+			// 	newShop.activities.push(item)
+			// })
 
 
 			if (fields.bao) {

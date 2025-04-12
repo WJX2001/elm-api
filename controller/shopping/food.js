@@ -1,6 +1,6 @@
 import BaseComponent from "../../prototype/baseComponent"
-import { Food as FoodModel, Menu as MenuMode } from '../../models/shopping/food'
-
+import formidable from "formidable"
+import { Food as FoodModel, Menu as MenuModel } from '../../models/shopping/food'
 class Food extends BaseComponent {
   constructor() {
     super()
@@ -34,7 +34,7 @@ class Food extends BaseComponent {
 
       const defaultData = this.defaultData[i]
       const Category = { ...defaultData, id: category_id, restaurant_id }
-      const newFood = new MenuMode(Category)
+      const newFood = new MenuModel(Category)
 
       try {
         await newFood.save()
@@ -45,6 +45,79 @@ class Food extends BaseComponent {
       }
     }
   }
+
+  async addFood (req, res, next) {
+    const form = new formidable.IncomingForm()
+    form.parse(req, async (err, fields, files) => {
+      try {
+        if (!fields.name) {
+          throw new Error('必须填写食品名称')
+        } else if (!fields.image_path) {
+          throw new Error('必须上传食品图片')
+        } else if (!fields.category_id) {
+          throw new Error('食品类型ID错误')
+        } else if (!fields.restaurant_id) {
+          throw new Error('餐馆ID错误')
+        }
+      } catch (err) {
+        console.log('前台参数错误', err.message)
+        res.send({
+          status: 0,
+          type: 'ERROR_PARAMS',
+          message: err.message
+        })
+        return
+      }
+
+      let category
+      let restaurant
+
+      try {
+        category = await MenuModel.findOne({ id: fields.category_id })
+        restaurant = await ShopModel.findOne({ id: fields.restaurant_id })
+      } catch (err) {
+
+      }
+    })
+  }
+
+
+  /** 
+   * 获取食品列表
+   * /shopping/v2/menu
+   */
+
+  // async getMenu (req, res, next) {
+  //   const restaurant_id = req.query.restaurant_id
+  //   const allMenu = req.query.allMenu
+  //   if (!restaurant_id || !Number(restaurant_id)) {
+  //     console.log('获取餐馆参数ID错误')
+  //     res.send({
+  //       status: 0,
+  //       type: 'ERROR_PARAMS',
+  //       message: '餐馆ID参数错误',
+  //     })
+  //     return
+  //   }
+  //   let filter
+  //   if (allMenu) {
+  //     filter = { restaurant_id }
+  //   } else {
+  //     filter = { restaurant_id, $where: function () { return this.foods.length } }
+  //   }
+  //   try {
+  //     const menu = await MenuModel.find(filter, '-_id')
+  //     res.send(menu)
+  //   } catch (err) {
+  //     console.log('获取食品数据失败', err)
+  //     res.send({
+  //       status: 0,
+  //       type: 'GET_DATA_ERROR',
+  //       message: '获取食品数据失败'
+  //     })
+  //   }
+  // }
+
 }
 
 export default new Food()
