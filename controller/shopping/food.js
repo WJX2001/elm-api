@@ -20,6 +20,7 @@ class Food extends BaseComponent {
     }]
 
     this.initData = this.initData.bind(this)
+    this.addCategory = this.addCategory.bind(this);
   }
 
   async initData (restaurant_id) {
@@ -80,6 +81,73 @@ class Food extends BaseComponent {
       }
     })
   }
+
+
+
+  /** 
+   * 添加食品种类
+   * POST /shopping/addcategory
+   */
+
+  async addCategory (req, res, next) {
+    console.log(req, '我看看req')
+    // 这里解析参数
+    const { name, restaurant_id, description } = req.body
+    // 对食品类型名称做处理
+    try {
+      if (!name) {
+        throw new Error('必须填写食品类型名称')
+      } else if (!restaurant_id) {
+        throw new Error('餐馆ID错误')
+      }
+    } catch (err) {
+      console.log(err.message, err)
+      res.send({
+        status: 0,
+        type: 'ERROR_PARAMS',
+        message: err.message
+      })
+      return
+    }
+    let category_id
+
+    try {
+      category_id = await this.getId('category_id')
+    } catch (err) {
+      console.log('获取category_id 失败')
+      res.send({
+        type: 'ERROR_DATA',
+        message: '获取数据失败'
+      })
+      return
+    }
+
+    const foodObj = {
+      name,
+      description,
+      restaurant_id,
+      id: category_id,
+      food: [],
+    }
+    // 保存菜单类型
+    const newFood = new MenuModel(foodObj)
+    try {
+      await newFood.save()
+      res.send({
+        status: 1,
+        success: '添加食品种类成功'
+      })
+    } catch (err) {
+      console.log('保存数据失败')
+      res.send({
+        status: 0,
+        type: 'ERROR_IN_SAVE_DATA',
+        message: '保存数据失败',
+      })
+    }
+  }
+
+
 
 
   /** 
