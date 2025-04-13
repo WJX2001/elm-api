@@ -17,6 +17,7 @@ router.post('/addimg/:type', baseHandle.uploadImg)
 router.post('/carts/checkout', Carts.checkout)
 router.post('/captchas', Captchas.getCaptchas);
 router.post('/users/:user_id/addresses', Address.addAddress);
+router.delete('/users/:user_id/addresses/:address_id', Address.deleteAddress);
 router.post('/test', (req, res) => {
   console.log(req)
   res.send('ok')

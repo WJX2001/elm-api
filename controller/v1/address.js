@@ -6,10 +6,14 @@ import AddressModel from '../../models/v1/address'
 class Address extends BaseComponent {
   constructor() {
     super()
-    this.addAddress = this.addAddress.bind(this);
+    this.addAddress = this.addAddress.bind(this)
   }
 
 
+  /**
+   * 添加收货地址
+   * POST /v1/users/{user_id}/addresses
+   */
   async addAddress (req, res, next) {
     const form = new formidable.IncomingForm()
     form.parse(req, async (err, fields, fils) => {
@@ -75,6 +79,35 @@ class Address extends BaseComponent {
       }
     })
   }
+
+  /** 
+   * 删除收获地址
+   * POST /v1/users/:user_id/addresses/:address_id
+   */
+  async deleteAddress(req, res, next){
+		const {user_id, address_id} = req.params;
+		if (!user_id || !Number(user_id) || !address_id || !Number(address_id)) {
+			res.send({
+				type: 'ERROR_PARAMS',
+				message: '参数错误',
+			})
+			return 
+		}
+		try{
+			await AddressModel.findOneAndRemove({id: address_id});
+			res.send({
+				status: 1,
+				success: '删除地址成功',
+			})
+		}catch(err){
+			console.log('删除收获地址失败', err);
+			res.send({
+				type: 'ERROR_DELETE_ADDRESS',
+				message: '删除收获地址失败'
+			})
+		}
+	}
+
 }
 
 export default new Address()
