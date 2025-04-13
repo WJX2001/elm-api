@@ -9,7 +9,7 @@ class Captchas {
 
   // 验证码
   async getCaptchas (req, res, next) {
-    
+
     const cap = parseInt(Math.random() * 9000 + 1000)
     const p = new captchapng(80, 30, cap)
     p.color(0, 0, 0, 0)
