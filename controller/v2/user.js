@@ -3,12 +3,22 @@ import UserModel from '../../models/v2/user'
 import dtime from 'time-formater'
 import UserInfoModel from '../../models/v2/userInfo'
 import crypto from 'crypto'
+import formidable from "formidable"
 class User extends AddressComponent {
   constructor() {
     super()
     this.login = this.login.bind(this)
+    this.changePassword = this.changePassword.bind(this)
   }
 
+  /**
+   * 登陆接口
+   * POST /v2/login
+   * @params {string} username 用户名
+   * @params {string} password 密码
+   * @params {string} captcha_code 验证码
+   * @return {object} user
+   */
   async login (req, res, next) {
     const cap = req.cookies.cap
     console.log(cap, 'cap')
@@ -88,15 +98,118 @@ class User extends AddressComponent {
     }
   }
 
-  encryption (password) {
-    const newpassword = this.Md5(this.Md5(password).substr(2, 7) + this.Md5(password))
-    return newpassword
+  /**
+   * 退出接口
+   * GET /v2/signout
+   */
+  async signout (req, res, next) {
+    delete req.session.user_idF
+    res.send({
+      status: 1,
+      message: '退出成功'
+    })
   }
 
-  Md5 (password) {
-    const md5 = crypto.createHash('md5')
-    return md5.update(password).digest('hex')
-  }
+  /**
+   * 修改密码
+   * /v2/changepassword
+   * @param {string} username 用户名
+   * @param {string} oldpassWord 旧密码
+   * @param {string} newpassword 新密码
+   * @param {string} confirmpassword 确认密码
+   * @param {string} captcha_code  验证码
+   * @returns 
+   */
+  async changePassword(req, res, next){
+		const cap = req.cookies.cap;
+		if (!cap) {
+			console.log('验证码失效')
+			res.send({
+				status: 0,
+				type: 'ERROR_CAPTCHA',
+				message: '验证码失效',
+			})
+			return
+		}
+		const form = new formidable.IncomingForm();
+		form.parse(req, async (err, fields, files) => {
+			const {username, oldpassWord, newpassword, confirmpassword, captcha_code} = fields;
+			try{
+				if (!username) {
+					throw new Error('用户名参数错误');
+				}else if(!oldpassWord){
+					throw new Error('必须添加旧密码');
+				}else if(!newpassword){
+					throw new Error('必须填写新密码');
+				}else if(!confirmpassword){
+					throw new Error('必须填写确认密码');
+				}else if(newpassword !== confirmpassword){
+					throw new Error('两次密码不一致');
+				}else if(!captcha_code){
+					throw new Error('请填写验证码');
+				}
+			}catch(err){
+				console.log('修改密码参数错误', err);
+				res.send({
+					status: 0,
+					type: 'ERROR_QUERY',
+					message: err.message,
+				})
+				return
+			}
+			if (cap.toString() !== captcha_code.toString()) {
+				res.send({
+					status: 0,
+					type: 'ERROR_CAPTCHA',
+					message: '验证码不正确',
+				})
+				return
+			}
+			const md5password = this.encryption(oldpassWord);
+			try{
+				const user = await UserModel.findOne({username});
+				if (!user) {
+					res.send({
+						status: 0,
+						type: 'USER_NOT_FOUND',
+						message: '未找到当前用户',
+					})
+				}else if(user.password.toString() !== md5password.toString()){
+					res.send({
+						status: 0,
+						type: 'ERROR_PASSWORD',
+						message: '密码不正确',
+					})
+				}else{
+					user.password = this.encryption(newpassword);
+					user.save();
+					res.send({
+						status: 1,
+						success: '密码修改成功',
+					})
+				}
+			}catch(err){
+				console.log('修改密码失败', err);
+				res.send({
+					status: 0,
+					type: 'ERROR_CHANGE_PASSWORD',
+					message: '修改密码失败',
+				})
+			}
+		})
+	}
+
+
+
+
+  encryption(password){
+		const newpassword = this.Md5(this.Md5(password).substr(2, 7) + this.Md5(password));
+		return newpassword
+	}
+	Md5(password){
+		const md5 = crypto.createHash('md5');
+		return md5.update(password).digest('base64');
+	}
 }
 
 export default new User()

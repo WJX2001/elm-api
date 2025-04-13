@@ -5,6 +5,7 @@ import SearchPlace from '../controller/v1/search'
 import BaseComponent from '../prototype/baseComponent'
 import Carts from '../controller/v1/carts'
 import Captchas from '../controller/v1/captchas'
+import Address from '../controller/v1/address'
 const baseHandle = new BaseComponent()
 const router = express.Router()
 
@@ -15,6 +16,7 @@ router.get('/pois', SearchPlace.search)
 router.post('/addimg/:type', baseHandle.uploadImg)
 router.post('/carts/checkout', Carts.checkout)
 router.post('/captchas', Captchas.getCaptchas);
+router.post('/users/:user_id/addresses', Address.addAddress);
 router.post('/test', (req, res) => {
   console.log(req)
   res.send('ok')
