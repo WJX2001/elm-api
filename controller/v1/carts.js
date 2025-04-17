@@ -19,7 +19,6 @@ class Carts extends AddressComponent {
    * 加入购物车
    * POST /v1/carts/checkout
    */
-
   async checkout (req, res, next) {
     const UID = req.session.sessionID
     const { geohash, entities = [], restaurant_id } = req.body
