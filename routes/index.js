@@ -1,9 +1,10 @@
-'use strict';
+'use strict'
 import v1 from './v1'
 import v2 from './v2'
 import v3 from './v3'
 import v4 from './v4'
 import bos from './bos'
+import admin from './admin'
 import shopping from './shopping'
 import promotion from './promotion'
 export default app => {
@@ -12,7 +13,8 @@ export default app => {
   app.use('/v3', v3)
   app.use('/v4', v4)
   app.use('/bos', bos)
+  app.use('/admin', admin)
   app.use('/shopping', shopping)
-  app.use('/promotion', promotion);
+  app.use('/promotion', promotion)
 }
 

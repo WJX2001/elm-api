@@ -20,20 +20,6 @@ router.post('/captchas', Captchas.getCaptchas)
 router.post('/users/:user_id/addresses', Address.addAddress)
 router.delete('/users/:user_id/addresses/:address_id', Address.deleteAddress)
 router.post('/users/:user_id/carts/:cart_id/orders', Order.postOrder);
-router.post('/test', (req, res) => {
-  const { username } = req.body
-  console.log(username,'username')
-  res.send('ok')
-  // const form = new formidable.IncomingForm()
-  // form.parse(req, async (err, fields, files) => {
-  //   const { username } = fields
-  //   console.log(username,'username')
-  //   res.send('ok')
-  // })
 
-  // console.log(req)
- 
-})
-// router.post('/addimg/:type')
 
 export default router
