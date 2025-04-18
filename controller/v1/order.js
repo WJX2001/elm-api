@@ -2,6 +2,7 @@
 import BaseComponent from "../../prototype/baseComponent"
 import CartModel from '../../models/v1/cart'
 import OrderModel from '../../models/bos/order'
+import AddressModel from '../../models/v1/address'
 import dtime from 'time-formater'
 class Order extends BaseComponent {
   constructor() {
@@ -152,6 +153,59 @@ class Order extends BaseComponent {
         status: 0,
         type: 'ERROR_GET_ORDER_LIST',
         message: '获取订单列表失败'
+      })
+    }
+
+  }
+
+
+  /**  
+   * 获取订单详情
+   * GET /bos/v1/users/:user_id/orders/:order_id/snapshot
+   */
+  // 异步获取订单详情
+  async getDetail (req, res, next) {
+    // 获取请求参数
+    const { user_id, order_id } = req.params
+    try {
+      // 判断参数是否正确
+      if (!user_id || !Number(user_id)) {
+        throw new Error('user_id 参数错误')
+      } else if (!order_id || !Number(order_id)) {
+        throw new Error('order_id 参数错误')
+      }
+    } catch (err) {
+      // 打印错误信息
+      console.log(err.message)
+      // 返回错误信息
+      res.send({
+        status: 0,
+        type: 'GET_ERROR_PARAM',
+        message: err.message,
+      })
+      return
+    }
+
+    try {
+      const order = await OrderModel.findOne({ id: order_id }, '-_id')
+      const addressDetail = await AddressModel.findOne({ id: order.address_id })
+      const orderDetail = {
+        ...order,
+        ...{
+          addressDetail: addressDetail.address,
+          consignee: addressDetail.name,
+          deliver_time: '尽快送达',
+          pay_method: '在线支付',
+          phone: addressDetail.phone
+        }
+      }
+      res.send(orderDetail)
+    } catch (err) {
+      console.log('获取订单信息失败', err)
+      res.send({
+        status: 0,
+        type: 'ERROR_TO_GET_ORDER_DETAIL',
+        message: '获取订单信息失败'
       })
     }
 
