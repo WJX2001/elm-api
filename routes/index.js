@@ -5,6 +5,7 @@ import v3 from './v3'
 import v4 from './v4'
 import bos from './bos'
 import shopping from './shopping'
+import promotion from './promotion'
 export default app => {
   app.use('/v1', v1)
   app.use('/v2', v2)
@@ -12,5 +13,6 @@ export default app => {
   app.use('/v4', v4)
   app.use('/shopping', shopping)
   app.use('/bos', bos)
+  app.use('/promotion', promotion);
 }
 
